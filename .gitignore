@@ -14,3 +14,4 @@
 .phpunit.result.cache
 /public/storage/logs/laravel.log
 .idea/
+/bootstrap/cache/*.php

@@ -21,7 +21,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h2>⚠️ Внимание: Замечания по оборудованию в {{ $auditoryName }}</h2>
+            <h2>Внимание: Замечания по оборудованию в {{ $auditoryName }}</h2>
         </div>
 
         <table class="info-table">
