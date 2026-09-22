@@ -160,10 +160,10 @@
     document.addEventListener('DOMContentLoaded', function() {
         const keyboardInput = document.getElementById('keyboard_count');
         const mouseInput = document.getElementById('mouse_count');
+        const dbSysBlockCount = {{ $systemBlockCount }};
 
         function updateFormState() {
-            let totalFactSysBlocks = 0;
-            let hasSysBlocksInRoom = false;
+            let hasSysBlocksInRoom = (dbSysBlockCount > 0);
 
             document.querySelectorAll('#categoriesTable tbody tr').forEach(function(row) {
                 let dbInput = row.querySelector('.db-count-input');
@@ -171,7 +171,6 @@
                 let noteContainer = row.querySelector('.note-container');
                 let noteInput = row.querySelector('.note-input');
                 let matchBadge = row.querySelector('.match-badge');
-                let isSysBlock = row.getAttribute('data-is-sysblock') === '1';
 
                 if (!dbInput || !factInput) return;
 
@@ -179,11 +178,6 @@
                 let factVal = parseInt(factInput.value);
 
                 if (isNaN(factVal)) factVal = 0;
-
-                if (isSysBlock) {
-                    hasSysBlocksInRoom = true;
-                    totalFactSysBlocks += factVal;
-                }
 
                 // Показываем поле примечания ТОЛЬКО при расхождении по факту
                 if (factVal !== dbVal) {
@@ -206,7 +200,7 @@
                 }
             });
 
-            // Сверка периферии
+            // Сверка периферии (Клавиатуры / Мыши) с количеством рабочих мест по базе
             let keyboards = parseInt(keyboardInput?.value) || 0;
             let mice = parseInt(mouseInput?.value) || 0;
 
@@ -218,12 +212,12 @@
             if (!hasSysBlocksInRoom) {
                 alertBox.className = 'alert alert-info mt-3 mb-0 d-flex align-items-center';
                 alertText.innerHTML = `В этой аудитории системных блоков по базе не зафиксировано.`;
-            } else if (keyboards === totalFactSysBlocks && mice === totalFactSysBlocks) {
+            } else if (keyboards === dbSysBlockCount && mice === dbSysBlockCount) {
                 alertBox.className = 'alert alert-success mt-3 mb-0 d-flex align-items-center';
-                alertText.innerHTML = `<i class="bi bi-check-circle-fill me-2 fs-5"></i> <strong>Отлично!</strong> Количество клавиатур (${keyboards}) и мышей (${mice}) совпадает с количеством системных блоков по факту (${totalFactSysBlocks} шт.).`;
+                alertText.innerHTML = `<i class="bi bi-check-circle-fill me-2 fs-5"></i> <strong>Отлично!</strong> Количество клавиатур (${keyboards}) и мышей (${mice}) полностью укомплектовано по числу рабочих мест (${dbSysBlockCount} шт.).`;
             } else {
                 alertBox.className = 'alert alert-warning mt-3 mb-0 d-flex align-items-center';
-                alertText.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2 fs-5 text-warning"></i> <strong>Внимание!</strong> Системных блоков по факту: <strong>${totalFactSysBlocks} шт.</strong>, а клавиатур введено: <strong>${keyboards} шт.</strong>, мышек: <strong>${mice} шт.</strong>`;
+                alertText.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2 fs-5 text-warning"></i> <strong>Внимание!</strong> Число рабочих мест в аудитории: <strong>${dbSysBlockCount} шт.</strong>, а клавиатур указано: <strong>${keyboards} шт.</strong>, мышек: <strong>${mice} шт.</strong>`;
             }
         }
 
