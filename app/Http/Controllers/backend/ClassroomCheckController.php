@@ -173,15 +173,12 @@ class ClassroomCheckController extends Controller
         $now = Carbon::now();
         $isAdmin = Auth::check() && Auth::user()->hasAnyRole(['admin', 'super-admin']);
 
-        // Проходим по каждому блоку занятий и определяем статус проверок
         foreach ($schedule as $slot) {
             $startTime = Carbon::parse($todayStr . ' ' . $slot->start);
             $finishTime = Carbon::parse($todayStr . ' ' . $slot->finish);
             
-            // Вход доступен за 10 минут до начала
             $entranceUnlockTime = (clone $startTime)->subMinutes(10);
 
-            // Получаем существующие проверки за сегодня
             $entranceCheck = ClassroomCheck::where('tutor_id', $tutorId)
                 ->where('auditory_id', $slot->auditoryID)
                 ->where('check_date', $todayStr)
@@ -201,25 +198,23 @@ class ClassroomCheckController extends Controller
             $slot->entrance_check = $entranceCheck;
             $slot->exit_check = $exitCheck;
 
-            // Доступность кнопки "Вход"
             if ($entranceCheck) {
-                $slot->entrance_status = 'completed'; // Вход выполнен
+                $slot->entrance_status = 'completed';
                 $slot->can_check_entrance = false;
             } elseif ($isAdmin || $now->gte($entranceUnlockTime)) {
-                $slot->entrance_status = 'available'; // Доступен вход
+                $slot->entrance_status = 'available';
                 $slot->can_check_entrance = true;
             } else {
-                $slot->entrance_status = 'locked'; // Заблокирован по времени
+                $slot->entrance_status = 'locked';
                 $slot->can_check_entrance = false;
                 $slot->entrance_unlock_hint = 'Откроется в ' . $entranceUnlockTime->format('H:i');
             }
 
-            // Доступность кнопки "Выход"
             if ($exitCheck) {
-                $slot->exit_status = 'completed'; // Выход выполнен
+                $slot->exit_status = 'completed';
                 $slot->can_check_exit = false;
             } elseif ($entranceCheck && ($isAdmin || $now->gte($startTime))) {
-                $slot->exit_status = 'available'; // Доступен выход
+                $slot->exit_status = 'available';
                 $slot->can_check_exit = true;
             } else {
                 $slot->exit_status = 'locked';
@@ -239,7 +234,6 @@ class ClassroomCheckController extends Controller
         $start = $request->query('start');
         $finish = $request->query('finish');
 
-        // Получаем названия аудитории и корпуса
         $auditory = DB::connection('mysql_platonus')->table('auditories AS a')
             ->leftJoin('buildings AS b', 'a.buildingID', '=', 'b.buildingID')
             ->select('a.auditoryID', 'a.auditoryName', 'b.buildingName')
@@ -250,7 +244,6 @@ class ClassroomCheckController extends Controller
             return redirect()->route('home')->with('error', 'Аудитория не найдена');
         }
 
-        // Загрузка всего инвентаря данной аудитории
         $items = in_product_lists::with([
             'characteristics' => function ($query) {
                 $query->with('characteristic')
@@ -274,7 +267,6 @@ class ClassroomCheckController extends Controller
             ->orderBy('id_product', 'desc')
             ->get();
 
-        // Сгруппированный список категорий по базе данных
         $groupedSummary = $items->groupBy(function($item) {
             return $item->name_product ?: 'Прочее оборудование';
         })->map(function($group, $name) {
@@ -289,7 +281,6 @@ class ClassroomCheckController extends Controller
             ];
         });
 
-        // Базовое количество системных блоков
         $systemBlockCount = 0;
         foreach ($groupedSummary as $cat) {
             if ($cat['is_system_block']) {
@@ -326,7 +317,6 @@ class ClassroomCheckController extends Controller
 
         DB::beginTransaction();
         try {
-            // Создаем шапку проверки
             $check = ClassroomCheck::create([
                 'tutor_id'       => $tutorId,
                 'auditory_id'    => $auditoryId,
@@ -381,9 +371,19 @@ class ClassroomCheckController extends Controller
                 ]);
             }
 
-            // Валидация совпадения клавиатур и мышей с количеством системных блоков по факту
-            if ($factSystemBlocks > 0) {
-                if ($request->filled('keyboard_count') && (int)$request->keyboard_count !== $factSystemBlocks) {
+            // Сверка периферии с количеством рабочих мест (системных блоков по базе)
+            $dbSystemBlocks = 0;
+            if ($request->has('categories') && is_array($request->categories)) {
+                foreach ($request->categories as $catData) {
+                    $pNameLower = mb_strtolower($catData['name'] ?? '');
+                    if (str_contains($pNameLower, 'системн') || str_contains($pNameLower, 'компьютер') || str_contains($pNameLower, 'пк') || str_contains($pNameLower, 'моноблок')) {
+                        $dbSystemBlocks += (int)($catData['db_count'] ?? 0);
+                    }
+                }
+            }
+
+            if ($dbSystemBlocks > 0) {
+                if ($request->filled('keyboard_count') && (int)$request->keyboard_count !== $dbSystemBlocks) {
                     $hasDiscrepancy = true;
                     $discrepancies[] = [
                         'id_product'   => 0,
@@ -391,11 +391,11 @@ class ClassroomCheckController extends Controller
                         'inv_number'   => '—',
                         'is_present'   => false,
                         'condition'    => 'damaged',
-                        'note'         => "Количество клавиатур по факту ({$request->keyboard_count} шт.) не совпадает с количеством системных блоков ({$factSystemBlocks} шт.)",
+                        'note'         => "Количество клавиатур ({$request->keyboard_count} шт.) не совпадает с числом рабочих мест по базе ({$dbSystemBlocks} шт.)",
                     ];
                 }
 
-                if ($request->filled('mouse_count') && (int)$request->mouse_count !== $factSystemBlocks) {
+                if ($request->filled('mouse_count') && (int)$request->mouse_count !== $dbSystemBlocks) {
                     $hasDiscrepancy = true;
                     $discrepancies[] = [
                         'id_product'   => 0,
@@ -403,7 +403,7 @@ class ClassroomCheckController extends Controller
                         'inv_number'   => '—',
                         'is_present'   => false,
                         'condition'    => 'damaged',
-                        'note'         => "Количество мышек по факту ({$request->mouse_count} шт.) не совпадает с количеством системных блоков ({$factSystemBlocks} шт.)",
+                        'note'         => "Количество мышек ({$request->mouse_count} шт.) не совпадает с числом рабочих мест по базе ({$dbSystemBlocks} шт.)",
                     ];
                 }
             }
@@ -501,6 +501,7 @@ class ClassroomCheckController extends Controller
 
             $check->tutor_fullname = $t ? trim($t->lastname . ' ' . $t->firstname . ' ' . $t->patronymic) : 'ID: ' . $check->tutor_id;
             $check->auditory_name = $a ? ($a->auditoryName . ' (' . $a->buildingName . ')') : 'ID: ' . $check->auditory_id;
+            $check->created_at_formatted = $check->created_at ? $check->created_at->format('d.m.Y H:i') : $check->check_date;
         }
 
         // Списки для фильтров в шапке
