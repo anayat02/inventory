@@ -82,6 +82,126 @@
         </div>
     </div>
     <div class="col-md-12">
+        <div class="card card-outline card-success mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #f8f9fa;">
+                <h4 class="card-title text-success mb-0" style="font-weight: 600;">
+                    <i class="bi bi-shield-check me-2"></i> Сегодняшние занятия и контроль сохранности аудиторий
+                </h4>
+                <?php if(Auth::user()->hasAnyRole(['admin', 'super-admin'])): ?>
+                    <a href="<?php echo e(route('classroom_checks.admin_history')); ?>" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-journal-text me-1"></i> Журнал проверок (Админ)
+                    </a>
+                <?php endif; ?>
+            </div>
+            <div class="card-body">
+                <?php if(session('success')): ?>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle me-1"></i> <?php echo e(session('success')); ?>
+
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php endif; ?>
+                <?php if(session('error')): ?>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle me-1"></i> <?php echo e(session('error')); ?>
+
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php endif; ?>
+
+                <?php if(empty($todaySchedule) || count($todaySchedule) == 0): ?>
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-calendar-x fs-2 d-block mb-2 text-secondary"></i>
+                        На сегодня у вас нет запланированных пар в компьютерных классах или отслеживаемых аудиториях.
+                    </div>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Аудитория и корпус</th>
+                                    <th>Тип аудитории</th>
+                                    <th>Кафедра</th>
+                                    <th class="text-center">Время занятий</th>
+                                    <th class="text-center">Кол-во пар</th>
+                                    <th class="text-center" style="width: 180px;">Проверка на ВХОДЕ</th>
+                                    <th class="text-center" style="width: 180px;">Проверка на ВЫХОДЕ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php $__currentLoopData = $todaySchedule; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $slot): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <tr>
+                                        <td>
+                                            <strong class="text-primary fs-6"><?php echo e($slot->auditoryName); ?></strong>
+                                            <div class="small text-muted"><?php echo e($slot->buildingName); ?></div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info text-dark"><?php echo e($slot->auditoryTypeName); ?></span>
+                                        </td>
+                                        <td><?php echo e($slot->cafedraNameRU); ?></td>
+                                        <td class="text-center">
+                                            <span class="badge bg-light text-dark border fs-6">
+                                                <i class="bi bi-clock me-1"></i> <?php echo e($slot->start); ?> — <?php echo e($slot->finish); ?>
+
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary"><?php echo e($slot->lesson_count); ?> <?php echo e($slot->lesson_count == 1 ? 'пара' : 'пары'); ?></span>
+                                        </td>
+                                        <td class="text-center">
+                                            <?php if($slot->entrance_status == 'completed'): ?>
+                                                <span class="badge bg-success p-2 d-block">
+                                                    <i class="bi bi-check-circle-fill me-1"></i> Пройдено
+                                                </span>
+                                                <?php if($slot->entrance_check && $slot->entrance_check->status == 'discrepancy'): ?>
+                                                    <small class="text-danger d-block mt-1">⚠️ Есть замечания</small>
+                                                <?php endif; ?>
+                                            <?php elseif($slot->can_check_entrance): ?>
+                                                <a href="<?php echo e(route('classroom_checks.form', ['auditoryID' => $slot->auditoryID, 'checkType' => 'entrance', 'start' => $slot->start, 'finish' => $slot->finish])); ?>" 
+                                                   class="btn btn-sm btn-primary w-100">
+                                                    <i class="bi bi-box-arrow-in-right me-1"></i> Вход в ауд.
+                                                </a>
+                                            <?php else: ?>
+                                                <button class="btn btn-sm btn-secondary w-100" disabled title="<?php echo e($slot->entrance_unlock_hint ?? ''); ?>">
+                                                    <i class="bi bi-lock-fill me-1"></i> Заблокировано
+                                                </button>
+                                                <?php if(isset($slot->entrance_unlock_hint)): ?>
+                                                    <small class="text-muted d-block mt-1"><?php echo e($slot->entrance_unlock_hint); ?></small>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="text-center">
+                                            <?php if($slot->exit_status == 'completed'): ?>
+                                                <span class="badge bg-success p-2 d-block">
+                                                    <i class="bi bi-check-circle-fill me-1"></i> Пройдено
+                                                </span>
+                                                <?php if($slot->exit_check && $slot->exit_check->status == 'discrepancy'): ?>
+                                                    <small class="text-danger d-block mt-1">⚠️ Есть замечания</small>
+                                                <?php endif; ?>
+                                            <?php elseif($slot->can_check_exit): ?>
+                                                <a href="<?php echo e(route('classroom_checks.form', ['auditoryID' => $slot->auditoryID, 'checkType' => 'exit', 'start' => $slot->start, 'finish' => $slot->finish])); ?>" 
+                                                   class="btn btn-sm btn-warning w-100 text-dark">
+                                                    <i class="bi bi-box-arrow-right me-1"></i> Выход из ауд.
+                                                </a>
+                                            <?php else: ?>
+                                                <button class="btn btn-sm btn-secondary w-100" disabled title="<?php echo e($slot->exit_unlock_hint ?? ''); ?>">
+                                                    <i class="bi bi-lock-fill me-1"></i> Заблокировано
+                                                </button>
+                                                <?php if(isset($slot->exit_unlock_hint)): ?>
+                                                    <small class="text-muted d-block mt-1"><?php echo e($slot->exit_unlock_hint); ?></small>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12">
         <!-- /.card -->
         <div class="card card-primary">
             <div class="card-header info">

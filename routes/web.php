@@ -53,7 +53,15 @@ Route::middleware(['role:admin'])->group(function () {
     Route::get('/analytics/anomalies', [App\Http\Controllers\backend\AnalyticsController::class, 'anomalies'])->name('analytics.anomalies');
     Route::get('/analytics/predictive', [App\Http\Controllers\backend\AnalyticsController::class, 'predictive'])->name('analytics.predictive');
 
+    Route::get('/classroom-checks/history', [App\Http\Controllers\backend\ClassroomCheckController::class, 'adminHistory'])->name('classroom_checks.admin_history');
+
 });
+//Маршруты модуля проверки аудиторий (доступные всем авторизованным преподавателям)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/classroom-checks/form/{auditoryID}/{checkType}', [App\Http\Controllers\backend\ClassroomCheckController::class, 'showCheckForm'])->name('classroom_checks.form');
+    Route::post('/classroom-checks/store', [App\Http\Controllers\backend\ClassroomCheckController::class, 'storeCheck'])->name('classroom_checks.store');
+});
+
 //Ссылки доступные всем пользователям
 Route::get('/dit_create', [DitInvertoryController::class,'CreateDit'])->name('createDit');
 

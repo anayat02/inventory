@@ -71,7 +71,9 @@ class HomeController extends Controller
 
         $tutorList = DB::connection('mysql_platonus')->table('tutors')->get();
 
-        return view('home', compact('messages', 'info', 'hasPendingTransmissions', 'inventory', 'tutorList'));
+        $todaySchedule = \App\Http\Controllers\backend\ClassroomCheckController::getTodayScheduleForTutor(Auth::user()->TutorID);
+
+        return view('home', compact('messages', 'info', 'hasPendingTransmissions', 'inventory', 'tutorList', 'todaySchedule'));
     }
 
     public function showConfirmPage()

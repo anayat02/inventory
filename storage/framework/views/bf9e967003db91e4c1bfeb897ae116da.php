@@ -10,11 +10,6 @@
 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
     <!-- Add icons to the links using the .nav-icon class
          with font-awesome or any other icon font library -->
-    <?php
-
-        $adminTutorID = [646, 359, 521];
-
-    ?>
     <li class="nav-item">
         <a href="/" class="nav-link">
             <i class="bi bi-house-fill"></i>
@@ -159,29 +154,39 @@
                 </li>
             </ul>
         </li>
-        <li class="nav-item">
-            <a href="#" class="nav-link">
-                <i class="bi bi-robot"></i>
-                <p>
-                    ИИ-Аналитика
-                    <i class="fas fa-angle-left right"></i>
-                </p>
-            </a>
-            <ul class="nav nav-treeview" style="margin-left: 12px;">
-                <li class="nav-item">
-                    <a href="<?php echo e(route('analytics.anomalies')); ?>" class="nav-link">
-                        <i class="bi bi-exclamation-diamond"></i>
-                        <p>Аномалии (DBSCAN)</p>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?php echo e(route('analytics.predictive')); ?>" class="nav-link">
-                        <i class="bi bi-graph-up-arrow"></i>
-                        <p>Прогноз (Random Forest)</p>
-                    </a>
-                </li>
-            </ul>
-        </li>
+        <?php if(Auth::user()->hasAnyRole(['admin', 'super-admin'])): ?>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="bi bi-robot"></i>
+                    <p>
+                        ИИ-Аналитика
+                        <i class="fas fa-angle-left right"></i>
+                    </p>
+                </a>
+                <ul class="nav nav-treeview" style="margin-left: 12px;">
+                    <li class="nav-item">
+                        <a href="<?php echo e(route('analytics.anomalies')); ?>" class="nav-link">
+                            <i class="bi bi-exclamation-diamond"></i>
+                            <p>Аномалии (DBSCAN)</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?php echo e(route('analytics.predictive')); ?>" class="nav-link">
+                            <i class="bi bi-graph-up-arrow"></i>
+                            <p>Прогноз (Random Forest)</p>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        <?php endif; ?>
+        <?php if(Auth::user()->hasAnyRole(['admin', 'super-admin'])): ?>
+            <li class="nav-item">
+                <a href="<?php echo e(route('classroom_checks.admin_history')); ?>" class="nav-link">
+                    <i class="bi bi-shield-check text-warning"></i>
+                    <p>Журнал проверок аудиторий</p>
+                </a>
+            </li>
+        <?php endif; ?>
         <li class="nav-item">
             <a href="#" class="nav-link">
                 <i class="bi bi-gear-fill"></i>
