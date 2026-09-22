@@ -15,4 +15,6 @@
 /public/storage/logs/laravel.log
 .idea/
 /bootstrap/cache/*.php
-/public/storage/logs/*
+/public/storage/logs/*storage/logs/*.log
+public/storage
+public/storage/logs/*.log
