@@ -18,3 +18,4 @@
 /public/storage/logs/*storage/logs/*.log
 public/storage
 public/storage/logs/*.log
+public/storage/logs/*.log
