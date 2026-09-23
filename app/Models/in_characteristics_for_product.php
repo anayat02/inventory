@@ -7,8 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class in_characteristics_for_product extends Model
 {
-    protected $fillable = ['characteristic_value'];
-    // другие свойства и методы
+    protected $fillable = [
+        'id_product',
+        'id_characteristic',
+        'characteristic_value',
+        'current_status',
+    ];
 
     protected $table = 'in_characteristics_for_products';
     protected $primaryKey = 'id_characteristics_for_product';
