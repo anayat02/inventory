@@ -41,7 +41,6 @@ class AllDatabaseController extends Controller
             ->where('in_product_lists.actual_inventory', 1)
             ->where('in_product_lists.write_off', 1);
 
-        // Для преподавателя — только его техника ответственности. Для админа — вся база.
         if (!$isAdmin) {
             $query->where('in_product_lists.TutorID', $user->TutorID);
         }
@@ -70,7 +69,7 @@ class AllDatabaseController extends Controller
 
         // Списки для фильтров
         $buildings = DB::connection('mysql_platonus')->table('buildings')->get();
-        $auditories = DB::connection('mysql_platonus')->table('auditories')->get();
+        $auditories = DB::table('auditories')->orderByRaw('CAST(auditoryName AS UNSIGNED) asc')->get();
         $productNames = DB::table('in_product_name')->get();
         $tutors = $isAdmin ? DB::connection('mysql_platonus')->table('tutors')->get() : collect();
 
@@ -113,7 +112,7 @@ class AllDatabaseController extends Controller
         $items = $query->orderBy('id_product', 'desc')->get();
 
         $buildings = DB::connection('mysql_platonus')->table('buildings')->get();
-        $auditories = DB::connection('mysql_platonus')->table('auditories')->get();
+        $auditories = DB::table('auditories')->orderByRaw('CAST(auditoryName AS UNSIGNED) asc')->get();
         $productNames = DB::table('in_product_name')->get();
         $tutors = $isAdmin ? DB::connection('mysql_platonus')->table('tutors')->get() : collect();
 
@@ -158,7 +157,7 @@ class AllDatabaseController extends Controller
         $items = $query->orderBy('id_product', 'desc')->get();
 
         $buildings = DB::connection('mysql_platonus')->table('buildings')->get();
-        $auditories = DB::connection('mysql_platonus')->table('auditories')->get();
+        $auditories = DB::table('auditories')->orderByRaw('CAST(auditoryName AS UNSIGNED) asc')->get();
         $productNames = DB::table('in_product_name')->get();
         $tutors = $isAdmin ? DB::connection('mysql_platonus')->table('tutors')->get() : collect();
 
@@ -199,7 +198,7 @@ class AllDatabaseController extends Controller
         $items = $query->orderBy('id_product', 'desc')->get();
 
         $buildings = DB::connection('mysql_platonus')->table('buildings')->get();
-        $auditories = DB::connection('mysql_platonus')->table('auditories')->get();
+        $auditories = DB::table('auditories')->orderByRaw('CAST(auditoryName AS UNSIGNED) asc')->get();
         $productNames = DB::table('in_product_name')->get();
         $tutors = $isAdmin ? DB::connection('mysql_platonus')->table('tutors')->get() : collect();
 
