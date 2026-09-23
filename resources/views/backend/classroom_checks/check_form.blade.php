@@ -3,54 +3,61 @@
 @section('content')
 <div class="row">
     <div class="col-md-12">
-        <div class="card card-outline card-primary">
-            <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
                 <h3 class="card-title">
-                    Проверка инвентаря: {{ $auditory->auditoryName }} ({{ $auditory->buildingName }})
+                    <i class="bi bi-clipboard-check mr-1"></i>
+                    Проверка инвентаря: <strong>{{ $auditory->auditoryName }}</strong>
+                    <small class="text-muted">({{ $auditory->buildingName }})</small>
                 </h3>
-                <div>
-                    <span class="badge {{ $checkType == 'entrance' ? 'bg-primary' : 'bg-warning text-dark' }} fs-6">
-                        Тип проверки: {{ $checkType == 'entrance' ? 'Вход на занятие' : 'Выход с занятия' }}
+                <div class="card-tools">
+                    <span class="badge {{ $checkType == 'entrance' ? 'badge-primary' : 'badge-warning' }} mr-1">
+                        {{ $checkType == 'entrance' ? 'Вход на занятие' : 'Выход с занятия' }}
                     </span>
-                    <span class="badge bg-info text-dark fs-6 ms-2">
-                        Время пар: {{ $start }} — {{ $finish }}
+                    <span class="badge badge-secondary">
+                        {{ $start }} — {{ $finish }}
                     </span>
                 </div>
             </div>
 
             <div class="card-body">
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i>
-                    Укажите количество рабочей техники каждой категории оборудования в аудитории. 
-                    Если фактическое количество отличается от базы данных, появится поле для ввода примечания.
+                <div class="callout callout-info py-2 mb-3" style="font-size: 13px;">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Укажите фактическое количество каждой категории оборудования.
+                    При расхождении с базой появится поле для примечания.
                 </div>
 
                 @if(session('error'))
-                    <div class="alert alert-danger">{{ session('error') }}</div>
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                        {{ session('error') }}
+                    </div>
                 @endif
 
                 <form action="{{ route('classroom_checks.store') }}" method="POST" id="classroomCheckForm">
                     @csrf
-                    <input type="hidden" name="auditory_id" value="{{ $auditory->auditoryID }}">
-                    <input type="hidden" name="check_type" value="{{ $checkType }}">
-                    <input type="hidden" name="lesson_start" value="{{ $start }}">
+                    <input type="hidden" name="auditory_id"   value="{{ $auditory->auditoryID }}">
+                    <input type="hidden" name="check_type"    value="{{ $checkType }}">
+                    <input type="hidden" name="lesson_start"  value="{{ $start }}">
                     <input type="hidden" name="lesson_finish" value="{{ $finish }}">
 
-                    <!-- 1. ТАБЛИЦА СВЕРКИ КОЛИЧЕСТВА ОС ПО КАТЕГОРИЯМ -->
-                    <div class="card border mb-4">
-                        <div class="card-header bg-light font-weight-bold">
-                            Учет оборудования по категориям:
+                    {{-- 1. Таблица оборудования по категориям --}}
+                    <div class="card card-outline card-secondary mb-3">
+                        <div class="card-header py-2">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-boxes mr-1"></i> Оборудование по категориям
+                            </h6>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
-                                <table class="table table-bordered table-hover align-middle mb-0" id="categoriesTable">
-                                    <thead class="table-light">
+                                <table class="table table-bordered table-sm table-hover align-middle mb-0" id="categoriesTable" style="font-size: 13px;">
+                                    <thead class="thead-light text-center">
                                         <tr>
-                                            <th style="width: 50px;" class="text-center">#</th>
-                                            <th>Наименование ОС</th>
-                                            <th style="width: 140px;" class="text-center">По базе (шт.)</th>
-                                            <th style="width: 160px;" class="text-center">По факту (шт.)</th>
-                                            <th>Примечание</th>
+                                            <th style="width: 40px;">#</th>
+                                            <th class="text-left">Наименование ОС</th>
+                                            <th style="width: 120px;">По базе</th>
+                                            <th style="width: 150px;">По факту</th>
+                                            <th class="text-left">Примечание</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -58,34 +65,34 @@
                                         @forelse($groupedSummary as $catName => $catData)
                                             @php $idx++; @endphp
                                             <tr data-is-sysblock="{{ $catData['is_system_block'] ? '1' : '0' }}">
-                                                <input type="hidden" name="categories[{{ $idx }}][name]" value="{{ $catData['name'] }}">
+                                                <input type="hidden" name="categories[{{ $idx }}][name]"     value="{{ $catData['name'] }}">
                                                 <input type="hidden" name="categories[{{ $idx }}][db_count]" value="{{ $catData['db_count'] }}" class="db-count-input">
-                                                
-                                                <td class="text-center">{{ $idx }}</td>
+
+                                                <td class="text-center text-muted">{{ $idx }}</td>
                                                 <td>
-                                                    <strong class="fs-6">{{ $catData['name'] }}</strong>
+                                                    {{ $catData['name'] }}
                                                     @if($catData['is_system_block'])
-                                                        <span class="badge bg-primary ms-1">ПК / Системный блок</span>
+                                                        <span class="badge badge-primary ml-1">ПК</span>
                                                     @endif
                                                 </td>
                                                 <td class="text-center">
-                                                    <span class="badge bg-secondary fs-6">{{ $catData['db_count'] }} шт.</span>
+                                                    <span class="badge badge-secondary">{{ $catData['db_count'] }} шт.</span>
                                                 </td>
                                                 <td class="text-center">
-                                                    <input type="number" min="0" name="categories[{{ $idx }}][fact_count]" 
-                                                           value="{{ $catData['db_count'] }}" 
-                                                           class="form-control form-control-lg text-center font-weight-bold fact-count-input"
-                                                           style="width: 110px; margin: 0 auto;">
+                                                    <input type="number" min="0"
+                                                           name="categories[{{ $idx }}][fact_count]"
+                                                           value="{{ $catData['db_count'] }}"
+                                                           class="form-control form-control-sm text-center font-weight-bold fact-count-input"
+                                                           style="width: 90px; margin: 0 auto;">
                                                 </td>
                                                 <td>
                                                     <div class="note-container d-none">
-                                                        <input type="text" name="categories[{{ $idx }}][note]" 
-                                                               class="form-control border-warning note-input" 
-                                                               placeholder="Опишите причину (например, 1 шт. в ремонте или не работает)...">
+                                                        <input type="text"
+                                                               name="categories[{{ $idx }}][note]"
+                                                               class="form-control form-control-sm border-warning note-input"
+                                                               placeholder="Укажите причину расхождения...">
                                                     </div>
-                                                    <div class="match-badge text-success small font-weight-bold">
-                                                         Совпадает с базой
-                                                    </div>
+                                                    <small class="match-badge text-success"><i class="fas fa-check mr-1"></i>Совпадает</small>
                                                 </td>
                                             </tr>
                                         @empty
@@ -101,53 +108,62 @@
                         </div>
                     </div>
 
-                    <!-- 2. УЧЕТ ПЕРИФЕРИИ (КЛАВИАТУРЫ И МЫШИ) -->
-                    <div class="card border-primary mb-4">
-                        <div class="card-header bg-primary text-white font-weight-bold">
-                            <i class="bi bi-keyboard me-2"></i> Учет периферии (Клавиатуры и Мыши)
+                    {{-- 2. Периферия --}}
+                    <div class="card card-outline card-info mb-3">
+                        <div class="card-header py-2">
+                            <h6 class="card-title mb-0">
+                                <i class="bi bi-keyboard mr-1"></i> Учет периферии
+                            </h6>
                         </div>
                         <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="keyboard_count" class="form-label font-weight-bold">
-                                        <i class="bi bi-keyboard me-1 text-primary"></i> Количество клавиатур (по факту):
-                                    </label>
-                                    <input type="number" min="0" name="keyboard_count" id="keyboard_count" 
-                                           class="form-control form-control-lg text-center font-weight-bold" 
-                                           value="{{ $systemBlockCount }}">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-2">
+                                        <label for="keyboard_count" class="text-muted small mb-1">
+                                            <i class="bi bi-keyboard mr-1"></i> Клавиатуры (по факту):
+                                        </label>
+                                        <input type="number" min="0" name="keyboard_count" id="keyboard_count"
+                                               class="form-control text-center font-weight-bold"
+                                               value="{{ $systemBlockCount }}">
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label for="mouse_count" class="form-label font-weight-bold">
-                                        <i class="bi bi-mouse me-1 text-primary"></i> Количество мышек (по факту):
-                                    </label>
-                                    <input type="number" min="0" name="mouse_count" id="mouse_count" 
-                                           class="form-control form-control-lg text-center font-weight-bold" 
-                                           value="{{ $systemBlockCount }}">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-2">
+                                        <label for="mouse_count" class="text-muted small mb-1">
+                                            <i class="bi bi-mouse mr-1"></i> Мышки (по факту):
+                                        </label>
+                                        <input type="number" min="0" name="mouse_count" id="mouse_count"
+                                               class="form-control text-center font-weight-bold"
+                                               value="{{ $systemBlockCount }}">
+                                    </div>
                                 </div>
-                            </div>
-
-                            <!-- Динамический алерт соответствия периферии с системными блоками -->
-                            <div id="peripheralAlert" class="alert alert-success mt-3 mb-0 d-flex align-items-center">
-                                <i class="bi bi-check-circle-fill fs-5 me-2"></i>
-                                <span id="peripheralAlertText">
-                                    Количество клавиатур и мышей соответствует количеству системных блоков ({{ $systemBlockCount }} шт.).
-                                </span>
+                                <div class="col-md-4 d-flex align-items-end mb-2">
+                                    <div id="peripheralAlert" class="callout callout-success py-2 w-100 mb-0" style="font-size: 12px;">
+                                        <span id="peripheralAlertText">
+                                            Соответствует числу рабочих мест ({{ $systemBlockCount }} шт.)
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 3. ОБЩИЙ КОММЕНТАРИЙ -->
-                    <div class="mb-3">
-                        <label for="comment" class="form-label font-weight-bold">Общий комментарий к аудитории (необязательно):</label>
-                        <textarea name="comment" id="comment" rows="2" class="form-control" placeholder="Укажите дополнительные замечания по аудитории..."></textarea>
+                    {{-- 3. Комментарий --}}
+                    <div class="form-group">
+                        <label for="comment" class="text-muted small mb-1">
+                            <i class="fas fa-comment-alt mr-1"></i> Общий комментарий (необязательно):
+                        </label>
+                        <textarea name="comment" id="comment" rows="2"
+                                  class="form-control form-control-sm"
+                                  placeholder="Дополнительные замечания..."></textarea>
                     </div>
 
-                    <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
-                        <a href="{{ route('home') }}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left me-1"></i> Отмена
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <a href="{{ route('home') }}" class="btn btn-default btn-sm">
+                            <i class="fas fa-arrow-left mr-1"></i> Отмена
                         </a>
-                        <button type="submit" class="btn btn-success btn-lg px-4">
-                            <i class="bi bi-check-circle-fill me-1"></i> Сохранить результаты проверки
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save mr-1"></i> Сохранить проверку
                         </button>
                     </div>
                 </form>
@@ -159,76 +175,63 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const keyboardInput = document.getElementById('keyboard_count');
-        const mouseInput = document.getElementById('mouse_count');
+        const mouseInput    = document.getElementById('mouse_count');
         const dbSysBlockCount = {{ $systemBlockCount }};
 
         function updateFormState() {
-            let hasSysBlocksInRoom = (dbSysBlockCount > 0);
+            let hasSysBlocks = (dbSysBlockCount > 0);
 
             document.querySelectorAll('#categoriesTable tbody tr').forEach(function(row) {
-                let dbInput = row.querySelector('.db-count-input');
-                let factInput = row.querySelector('.fact-count-input');
+                let dbInput       = row.querySelector('.db-count-input');
+                let factInput     = row.querySelector('.fact-count-input');
                 let noteContainer = row.querySelector('.note-container');
-                let noteInput = row.querySelector('.note-input');
-                let matchBadge = row.querySelector('.match-badge');
+                let noteInput     = row.querySelector('.note-input');
+                let matchBadge    = row.querySelector('.match-badge');
 
                 if (!dbInput || !factInput) return;
 
-                let dbVal = parseInt(dbInput.value) || 0;
+                let dbVal   = parseInt(dbInput.value)   || 0;
                 let factVal = parseInt(factInput.value);
-
                 if (isNaN(factVal)) factVal = 0;
 
-                // Показываем поле примечания ТОЛЬКО при расхождении по факту
                 if (factVal !== dbVal) {
-                    if (noteContainer) noteContainer.classList.remove('d-none');
-                    if (matchBadge) matchBadge.classList.add('d-none');
-                    if (noteInput) {
-                        noteInput.setAttribute('required', 'required');
-                    }
+                    noteContainer?.classList.remove('d-none');
+                    matchBadge?.classList.add('d-none');
+                    noteInput?.setAttribute('required', 'required');
                     factInput.classList.add('is-invalid');
                     factInput.classList.remove('is-valid');
                 } else {
-                    if (noteContainer) noteContainer.classList.add('d-none');
-                    if (matchBadge) matchBadge.classList.remove('d-none');
-                    if (noteInput) {
-                        noteInput.removeAttribute('required');
-                        noteInput.value = '';
-                    }
+                    noteContainer?.classList.add('d-none');
+                    matchBadge?.classList.remove('d-none');
+                    noteInput?.removeAttribute('required');
+                    if (noteInput) noteInput.value = '';
                     factInput.classList.remove('is-invalid');
                     factInput.classList.add('is-valid');
                 }
             });
 
-            // Сверка периферии (Клавиатуры / Мыши) с количеством рабочих мест по базе
             let keyboards = parseInt(keyboardInput?.value) || 0;
-            let mice = parseInt(mouseInput?.value) || 0;
-
-            const alertBox = document.getElementById('peripheralAlert');
+            let mice      = parseInt(mouseInput?.value)    || 0;
+            const alertBox  = document.getElementById('peripheralAlert');
             const alertText = document.getElementById('peripheralAlertText');
-
             if (!alertBox || !alertText) return;
 
-            if (!hasSysBlocksInRoom) {
-                alertBox.className = 'alert alert-info mt-3 mb-0 d-flex align-items-center';
-                alertText.innerHTML = `В этой аудитории системных блоков по базе не зафиксировано.`;
+            if (!hasSysBlocks) {
+                alertBox.className = 'callout callout-info py-2 w-100 mb-0';
+                alertText.innerHTML = 'Системных блоков в базе нет.';
             } else if (keyboards === dbSysBlockCount && mice === dbSysBlockCount) {
-                alertBox.className = 'alert alert-success mt-3 mb-0 d-flex align-items-center';
-                alertText.innerHTML = `<i class="bi bi-check-circle-fill me-2 fs-5"></i> <strong>Отлично!</strong> Количество клавиатур (${keyboards}) и мышей (${mice}) полностью укомплектовано по числу рабочих мест (${dbSysBlockCount} шт.).`;
+                alertBox.className = 'callout callout-success py-2 w-100 mb-0';
+                alertText.innerHTML = `<i class="fas fa-check mr-1"></i> Клав: ${keyboards}, мышей: ${mice} — совпадает (${dbSysBlockCount} р/м).`;
             } else {
-                alertBox.className = 'alert alert-warning mt-3 mb-0 d-flex align-items-center';
-                alertText.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2 fs-5 text-warning"></i> <strong>Внимание!</strong> Число рабочих мест в аудитории: <strong>${dbSysBlockCount} шт.</strong>, а клавиатур указано: <strong>${keyboards} шт.</strong>, мышек: <strong>${mice} шт.</strong>`;
+                alertBox.className = 'callout callout-warning py-2 w-100 mb-0';
+                alertText.innerHTML = `<i class="fas fa-exclamation-triangle mr-1"></i> Р/мест: <strong>${dbSysBlockCount}</strong>, клав: <strong>${keyboards}</strong>, мышей: <strong>${mice}</strong>.`;
             }
         }
 
-        document.querySelectorAll('.fact-count-input').forEach(function(input) {
-            input.addEventListener('input', updateFormState);
-        });
+        document.querySelectorAll('.fact-count-input').forEach(i => i.addEventListener('input', updateFormState));
+        keyboardInput?.addEventListener('input', updateFormState);
+        mouseInput?.addEventListener('input', updateFormState);
 
-        if (keyboardInput) keyboardInput.addEventListener('input', updateFormState);
-        if (mouseInput) mouseInput.addEventListener('input', updateFormState);
-
-        // Инициализация при загрузке
         updateFormState();
     });
 </script>
