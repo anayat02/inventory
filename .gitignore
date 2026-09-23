@@ -19,3 +19,5 @@
 public/storage
 public/storage/logs/*.log
 public/storage/logs/*.log
+
+public/storage/*
