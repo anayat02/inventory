@@ -82,85 +82,85 @@
         </div>
     </div>
     <div class="col-md-12">
-        <div class="card card-outline card-success mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #f8f9fa;">
-                <h4 class="card-title text-success mb-0" style="font-weight: 600;">
-                    <i class="bi bi-shield-check me-2"></i> Сегодняшние занятия и контроль сохранности аудиторий
-                </h4>
-                @if(Auth::user()->hasAnyRole(['admin', 'super-admin']))
-                    <a href="{{ route('classroom_checks.admin_history') }}" class="btn btn-sm btn-outline-danger">
-                        <i class="bi bi-journal-text me-1"></i> Журнал проверок (Админ)
-                    </a>
-                @endif
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="bi bi-shield-check mr-1"></i> Сегодняшние занятия и контроль сохранности аудиторий
+                </h3>
+                <div class="card-tools">
+                    @if(Auth::user()->hasAnyRole(['admin', 'super-admin']))
+                        <a href="{{ route('classroom_checks.admin_history') }}" class="btn btn-tool btn-sm" title="Журнал проверок">
+                            <i class="bi bi-journal-text"></i> Журнал проверок
+                        </a>
+                    @endif
+                </div>
             </div>
-            <div class="card-body">
+            <div class="card-body {{ empty($todaySchedule) || count($todaySchedule) == 0 ? 'p-3' : 'p-0' }}">
                 @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="bi bi-check-circle me-1"></i> {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="alert alert-success alert-dismissible m-3">
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                        <i class="fas fa-check-circle mr-1"></i> {{ session('success') }}
                     </div>
                 @endif
                 @if(session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="bi bi-exclamation-triangle me-1"></i> {{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="alert alert-danger alert-dismissible m-3">
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                        <i class="fas fa-exclamation-triangle mr-1"></i> {{ session('error') }}
                     </div>
                 @endif
 
                 @if(empty($todaySchedule) || count($todaySchedule) == 0)
                     <div class="text-center py-4 text-muted">
-                        <i class="bi bi-calendar-x fs-2 d-block mb-2 text-secondary"></i>
-                        На сегодня у вас нет запланированных пар в компьютерных классах или отслеживаемых аудиториях.
+                        <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+                        <small>На сегодня запланированных занятий в компьютерных аудиториях нет.</small>
                     </div>
                 @else
                     <div class="table-responsive">
-                        <table class="table table-hover table-bordered align-middle">
-                            <thead class="table-light">
+                        <table class="table table-bordered table-hover table-sm mb-0" style="font-size: 13px;">
+                            <thead class="thead-light text-center">
                                 <tr>
-                                    <th>Аудитория и корпус</th>
-                                    <th>Тип аудитории</th>
-                                    <th>Кафедра</th>
-                                    <th class="text-center">Время занятий</th>
-                                    <th class="text-center">Кол-во пар</th>
-                                    <th class="text-center" style="width: 180px;">Проверка на ВХОДЕ</th>
-                                    <th class="text-center" style="width: 180px;">Проверка на ВЫХОДЕ</th>
+                                    <th class="text-left">Аудитория</th>
+                                    <th>Тип</th>
+                                    <th class="text-left">Кафедра</th>
+                                    <th>Время</th>
+                                    <th>Пары</th>
+                                    <th style="width: 160px;">Вход</th>
+                                    <th style="width: 160px;">Выход</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($todaySchedule as $slot)
                                     <tr>
                                         <td>
-                                            <strong class="text-primary fs-6">{{ $slot->auditoryName }}</strong>
+                                            <strong class="text-primary">{{ $slot->auditoryName }}</strong>
                                             <div class="small text-muted">{{ $slot->buildingName }}</div>
                                         </td>
-                                        <td>
-                                            <span class="badge bg-info text-dark">{{ $slot->auditoryTypeName }}</span>
+                                        <td class="text-center">
+                                            <span class="badge badge-info">{{ $slot->auditoryTypeName }}</span>
                                         </td>
                                         <td>{{ $slot->cafedraNameRU }}</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-light text-dark border fs-6">
-                                                <i class="bi bi-clock me-1"></i> {{ $slot->start }} — {{ $slot->finish }}
-                                            </span>
+                                        <td class="text-center text-muted">
+                                            {{ $slot->start }} — {{ $slot->finish }}
                                         </td>
                                         <td class="text-center">
-                                            <span class="badge bg-secondary">{{ $slot->lesson_count }} {{ $slot->lesson_count == 1 ? 'пара' : 'пары' }}</span>
+                                            <span class="badge badge-secondary">{{ $slot->lesson_count }}</span>
                                         </td>
                                         <td class="text-center">
                                             @if($slot->entrance_status == 'completed')
-                                                <span class="badge bg-success p-2 d-block">
-                                                    <i class="bi bi-check-circle-fill me-1"></i> Пройдено
+                                                <span class="badge badge-success p-2 d-block">
+                                                    <i class="fas fa-check mr-1"></i> Пройдено
                                                 </span>
                                                 @if($slot->entrance_check && $slot->entrance_check->status == 'discrepancy')
-                                                    <small class="text-danger d-block mt-1">⚠️ Есть замечания</small>
+                                                    <small class="text-danger d-block mt-1">Есть замечания</small>
                                                 @endif
                                             @elseif($slot->can_check_entrance)
-                                                <a href="{{ route('classroom_checks.form', ['auditoryID' => $slot->auditoryID, 'checkType' => 'entrance', 'start' => $slot->start, 'finish' => $slot->finish]) }}" 
-                                                   class="btn btn-sm btn-primary w-100">
-                                                    <i class="bi bi-box-arrow-in-right me-1"></i> Вход в ауд.
+                                                <a href="{{ route('classroom_checks.form', ['auditoryID' => $slot->auditoryID, 'checkType' => 'entrance', 'start' => $slot->start, 'finish' => $slot->finish]) }}"
+                                                   class="btn btn-sm btn-primary btn-block">
+                                                    <i class="bi bi-box-arrow-in-right mr-1"></i> Вход
                                                 </a>
                                             @else
-                                                <button class="btn btn-sm btn-secondary w-100" disabled title="{{ $slot->entrance_unlock_hint ?? '' }}">
-                                                    <i class="bi bi-lock-fill me-1"></i> Заблокировано
+                                                <button class="btn btn-sm btn-default btn-block" disabled title="{{ $slot->entrance_unlock_hint ?? '' }}">
+                                                    <i class="fas fa-lock mr-1"></i> Недоступно
                                                 </button>
                                                 @if(isset($slot->entrance_unlock_hint))
                                                     <small class="text-muted d-block mt-1">{{ $slot->entrance_unlock_hint }}</small>
@@ -169,20 +169,20 @@
                                         </td>
                                         <td class="text-center">
                                             @if($slot->exit_status == 'completed')
-                                                <span class="badge bg-success p-2 d-block">
-                                                    <i class="bi bi-check-circle-fill me-1"></i> Пройдено
+                                                <span class="badge badge-success p-2 d-block">
+                                                    <i class="fas fa-check mr-1"></i> Пройдено
                                                 </span>
                                                 @if($slot->exit_check && $slot->exit_check->status == 'discrepancy')
-                                                    <small class="text-danger d-block mt-1">⚠️ Есть замечания</small>
+                                                    <small class="text-danger d-block mt-1">Есть замечания</small>
                                                 @endif
                                             @elseif($slot->can_check_exit)
-                                                <a href="{{ route('classroom_checks.form', ['auditoryID' => $slot->auditoryID, 'checkType' => 'exit', 'start' => $slot->start, 'finish' => $slot->finish]) }}" 
-                                                   class="btn btn-sm btn-warning w-100 text-dark">
-                                                    <i class="bi bi-box-arrow-right me-1"></i> Выход из ауд.
+                                                <a href="{{ route('classroom_checks.form', ['auditoryID' => $slot->auditoryID, 'checkType' => 'exit', 'start' => $slot->start, 'finish' => $slot->finish]) }}"
+                                                   class="btn btn-sm btn-warning btn-block">
+                                                    <i class="bi bi-box-arrow-right mr-1"></i> Выход
                                                 </a>
                                             @else
-                                                <button class="btn btn-sm btn-secondary w-100" disabled title="{{ $slot->exit_unlock_hint ?? '' }}">
-                                                    <i class="bi bi-lock-fill me-1"></i> Заблокировано
+                                                <button class="btn btn-sm btn-default btn-block" disabled title="{{ $slot->exit_unlock_hint ?? '' }}">
+                                                    <i class="fas fa-lock mr-1"></i> Недоступно
                                                 </button>
                                                 @if(isset($slot->exit_unlock_hint))
                                                     <small class="text-muted d-block mt-1">{{ $slot->exit_unlock_hint }}</small>
@@ -198,6 +198,7 @@
             </div>
         </div>
     </div>
+
     <div class="col-md-12">
         <!-- /.card -->
         <div class="card card-primary">
