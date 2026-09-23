@@ -257,29 +257,29 @@ class MoveAndChangeController extends Controller
         return back()->with('success', 'Статус подтвержден!');
     }
 
-    public function refuseStatus(Request $request)
+    public function refuseStatus(Request $request, $id)
     {
+        $item = in_product_lists::where('id_product', $id)->firstOrFail();
+
         $validated = $request->validate([
-            'message' => 'required|string',
-            'inv_number' => 'nullable|string',
+            'message'     => 'required|string',
+            'inv_number'  => 'nullable|string',
             'redactor_id' => 'required',
-            'id_product' => 'required',
-            'id_name' => 'required',
+            'id_name'     => 'required',
         ]);
 
         $adminTutorID = [646, 359];
 
         if (in_array(Auth::user()->TutorID, $adminTutorID)) {
-            $item = in_product_lists::findOrFail($validated['id_product']);
             $item->verification_status = 3;
             $item->save();
 
             $message = new in_messages();
-            $message->message = $validated['message'];
-            $message->TutorID = $validated['redactor_id'];
+            $message->message    = $validated['message'];
+            $message->TutorID    = $validated['redactor_id'];
             $message->inv_number = $validated['inv_number'];
-            $message->id_name = $validated['id_name'];
-            $message->id_product = $validated['id_product'];
+            $message->id_name    = $validated['id_name'];
+            $message->id_product = $item->id_product;
             $message->save();
         }
 

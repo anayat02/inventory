@@ -266,7 +266,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form action="{{ route('refuseStatus', ['id' => 0]) }}" method="POST">
+                <form id="refuseForm" action="{{ route('refuseStatus', ['id' => 0]) }}" method="POST">
                     @csrf
                     @if ($errors->any())
                         <div class="alert alert-danger">
@@ -284,9 +284,7 @@
 
                     <input class="form-control" type="hidden" name="inv_number" id="inv_number">
                     <input class="form-control" type="hidden" name="redactor_id" id="redactor_id">
-                    <input class="form-control" type="hidden" name="id_product" id="id_product">
-                    <input class="form-control" type="hidden" name="id_name" id="id_name">
-
+                    <input class="form-control" type="hidden" name="id_name" id="modal_id_name">
                     <div class="card-body">
                         <button class="btn btn-primary" type="submit">Отправить</button>
                     </div>
@@ -299,8 +297,10 @@
         function fillModal(invNumber, redactorId, id_name, id_product) {
             document.getElementById('inv_number').value = invNumber;
             document.getElementById('redactor_id').value = redactorId;
-            document.getElementById('id_name').value = id_name;
-            document.getElementById('id_product').value = id_product;
+            document.getElementById('modal_id_name').value = id_name;
+
+            const form = document.getElementById('refuseForm');
+            form.action = form.action.replace(/\/\d+$/, '/' + id_product);
         }
     </script>
 @endsection

@@ -32,9 +32,6 @@ Route::middleware(['role:admin'])->group(function () {
     Route::post('/update_properties/{id}', [PropertiesController::class, 'UpdateProperity'])->name('UpdateProperity');
     Route::get('/delete_properties/{id}', [PropertiesController::class, 'DeleteProperity'])->name('DeleteProperity');
 
-    Route::get('/synchronize', [SynchronizeController::class, 'synchronize'])->name('synchronize');
-    Route::post('/synchronize_complete', [SynchronizeController::class, 'synchronize_complete'])->name('synchronize_complete');
-
     Route::get('/write_off', [WriteOffController::class,'write_off'])->name('write_off');
     Route::post('/write_off_save', [WriteOffController::class,'write_off_save'])->name('write_off_save');
     Route::get('/write_off_list', [WriteOffController::class,'write_off_list'])->name('write_off_list');
@@ -56,13 +53,11 @@ Route::middleware(['role:admin'])->group(function () {
     Route::get('/classroom-checks/history', [App\Http\Controllers\backend\ClassroomCheckController::class, 'adminHistory'])->name('classroom_checks.admin_history');
 
 });
-//Маршруты модуля проверки аудиторий (доступные всем авторизованным преподавателям)
 Route::middleware(['auth'])->group(function () {
     Route::get('/classroom-checks/form/{auditoryID}/{checkType}', [App\Http\Controllers\backend\ClassroomCheckController::class, 'showCheckForm'])->name('classroom_checks.form');
     Route::post('/classroom-checks/store', [App\Http\Controllers\backend\ClassroomCheckController::class, 'storeCheck'])->name('classroom_checks.store');
 });
 
-//Ссылки доступные всем пользователям
 Route::get('/dit_create', [DitInvertoryController::class,'CreateDit'])->name('createDit');
 
 Route::get('/get-product-form/{id}', [DitInvertoryController::class,'getForm'])->name('getForm');
@@ -81,7 +76,7 @@ Route::get('/characteristic/{id}', [MoveAndChangeController::class,'editCharacte
 Route::post('/products/{id}/characteristics', [MoveAndChangeController::class, 'store'])->name('characteristics.store');
 Route::post('/all/{id_product}', [MoveAndChangeController::class, 'updateAll'])->name('updateAll');
 Route::post('/all/confirm/{id}', [MoveAndChangeController::class,'confirmStatus'])->name('confirmStatus');
-Route::post('/all/refuse/{id}', [MoveAndChangeController::class,'refuseStatus'])->name('refuseStatus');
+Route::post('/all/refuse/{id}', [MoveAndChangeController::class, 'refuseStatus'])->name('refuseStatus');
 Route::get('/get-product-form/{id}', [MoveAndChangeController::class,'getForm'])->name('getForm');
 Route::get('/change', [MoveAndChangeController::class,'change_tutor'])->name('change_tutor');
 Route::get('/search', [MoveAndChangeController::class, 'search_item'])->name('search_item');
