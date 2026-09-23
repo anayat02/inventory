@@ -146,8 +146,8 @@ class AllDatabaseController extends Controller
             ->where('in_product_lists.write_off', 1)
             ->where(function($q) {
                 $q->whereNull('in_product_lists.type')
-                  ->orWhereNull('in_product_lists.auditoryID')
-                  ->orWhereNull('in_product_lists.inv_number');
+                    ->orWhereNull('in_product_lists.auditoryID')
+                    ->orWhereNull('in_product_lists.inv_number');
             });
 
         if (!$isAdmin) {
