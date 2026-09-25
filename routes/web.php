@@ -47,6 +47,9 @@ Route::middleware(['role:admin'])->group(function () {
     Route::get('/responsible', [ResponsibleController::class,'index_responsible'])->name('index_responsible');
     Route::post('/responsible/synchronize', [ResponsibleController::class,'synchronize'])->name('synchronize');
 
+    Route::get('/synchronize_dit', [SynchronizeController::class,'synchronize_dit'])->name('synchronize_dit');
+    Route::post('/synchronize_complete', [SynchronizeController::class,'synchronize_complete'])->name('synchronize_complete');
+
     Route::get('/analytics/anomalies', [App\Http\Controllers\backend\AnalyticsController::class, 'anomalies'])->name('analytics.anomalies');
     Route::get('/analytics/predictive', [App\Http\Controllers\backend\AnalyticsController::class, 'predictive'])->name('analytics.predictive');
 

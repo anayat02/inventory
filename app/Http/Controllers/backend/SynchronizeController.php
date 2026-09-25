@@ -14,7 +14,7 @@ class SynchronizeController extends Controller
         $this->middleware('auth');
     }
 
-    public function synchronize(){
+    public function synchronize_dit(){
 
         $characteristics = in_product_list_characteristics::with('in_product_name', 'in_list_characteristics')->get();
 

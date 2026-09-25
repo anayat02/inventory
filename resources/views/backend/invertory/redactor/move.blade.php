@@ -56,7 +56,7 @@
                                             </div>
                                         @endif
 
-                                    @if(empty($edit->auditoryID))
+                                    {{--@if(empty($edit->auditoryID))--}}
                                             <div class="form-group">
                                                 <h5><strong>Местоположение</strong></h5>
                                                 <label for="building">Корпус</label>
@@ -74,12 +74,12 @@
                                                     @endforeach
                                                 </select>
                                             </div>
-                                        @else
+                                        {{--@else
                                             <input type="text" name="buildingID"  class="form-control"
                                                    id="inv_number" required  hidden value="{{$edit->buildingID}}">
                                             <input type="text" name="auditoryID"  class="form-control"
                                                    id="inv_number" required readonly hidden value="{{$edit->auditoryID}}">
-                                        @endif
+                                        @endif--}}
                                         @if(empty($edit->TutorID))
                                             <div class="form-group">
                                                 <label for="tutor">Выберите ответственное лицо</label>
@@ -96,6 +96,7 @@
                                                        id="inv_number" required readonly hidden value="{{$edit->TutorID}}">
                                             </div>
                                         @endif
+                                        @if(empty($edit->type))
                                         <div class="form-group">
                                             <label for="type">Назначение</label>
                                             <select id="type" name="type" class="form-control">
@@ -104,14 +105,15 @@
                                                 <option value="2">Аудиторный</option>
                                             </select>
                                         </div>
+                                        @endif
                                         <div class="form-group">
                                             <label for="inv_number">Инвертарный номер</label>
                                             @if(empty($edit->inv_number))
                                                 <input type="text" name="inv_number"  class="form-control"
-                                                       id="inv_number" placeholder="Введите номер" required>
+                                                       id="inv_number" placeholder="Введите номер">
                                             @else
                                                 <input type="text" name="inv_number"  class="form-control"
-                                                       id="inv_number" placeholder="Введите номер" required readonly value="{{$edit->inv_number}}">
+                                                       id="inv_number" placeholder="Введите номер" readonly value="{{$edit->inv_number}}">
                                             @endif
                                         </div>
                                     </div>

@@ -206,7 +206,7 @@
             </a>
             <ul class="nav nav-treeview" style="margin-left: 12px;">
                 <li class="nav-item">
-                    <a href="{{route('synchronize')}}" class="nav-link">
+                    <a href="{{route('synchronize_dit')}}" class="nav-link">
                         <i class="bi bi-arrow-repeat"></i>
                         <p>Синхронизация</p>
                     </a>
