@@ -80,7 +80,7 @@
                                             <input type="text" name="auditoryID"  class="form-control"
                                                    id="inv_number" required readonly hidden value="{{$edit->auditoryID}}">
                                         @endif--}}
-                                        @if(empty($edit->TutorID))
+                                        {{--@if(empty($edit->TutorID))--}}
                                             <div class="form-group">
                                                 <label for="tutor">Выберите ответственное лицо</label>
                                                 <select id="tutor" name="TutorID" class="form-control">
@@ -90,12 +90,12 @@
                                                     @endforeach
                                                 </select>
                                             </div>
-                                        @else
+                                        {{--@else
                                             <div class="form-group">
                                                 <input type="text" name="TutorID"  class="form-control"
                                                        id="inv_number" required readonly hidden value="{{$edit->TutorID}}">
                                             </div>
-                                        @endif
+                                        @endif--}}
                                         @if(empty($edit->type))
                                         <div class="form-group">
                                             <label for="type">Назначение</label>
