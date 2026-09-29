@@ -119,7 +119,7 @@ class MoveAndChangeController extends Controller
         try {
             $data = [];
 
-            // обновляем buildingID только если оно не было заполнено ранее
+            /*// обновляем buildingID только если оно не было заполнено ранее
             if (empty($edit->buildingID) && $request->filled('buildingID')) {
                 $data['buildingID'] = $request->buildingID;
             }
@@ -137,6 +137,25 @@ class MoveAndChangeController extends Controller
             }
             // inv_number
             if (empty($edit->inv_number) && $request->filled('inv_number')) {
+                $data['inv_number'] = $request->inv_number;
+            }*/
+            if ($request->filled('buildingID')) {
+                $data['buildingID'] = $request->buildingID;
+            }
+
+            if ($request->filled('auditoryID')) {
+                $data['auditoryID'] = $request->auditoryID;
+            }
+
+            if ($request->filled('TutorID')) {
+                $data['TutorID'] = $request->TutorID;
+            }
+
+            if ($request->filled('type')) {
+                $data['type'] = $request->type;
+            }
+
+            if ($request->filled('inv_number')) {
                 $data['inv_number'] = $request->inv_number;
             }
             // верификация/редактор всегда обновляем
