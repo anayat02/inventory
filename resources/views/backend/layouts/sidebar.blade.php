@@ -12,7 +12,7 @@
         <img src="{{asset('backend/dist/img/user.png')}}" class="" alt="Logo Inventory">
       </div>
       <div class="info">
-        <a href="#" class="d-block">{{ Auth::user()->lastname }} {{ Auth::user()->firstname }}</a>
+        <a href="#" class="d-block"><i style="color: green" class="bi bi-circle-fill"></i> Онлайн</a>
       </div>
     </div>
     <!-- SidebarSearch Form -->
