@@ -95,11 +95,11 @@ class MoveAndChangeController extends Controller
             ->exists();
 
         // Базовые правила
-        $rules = [
+        /*$rules = [
             'buildingID'  => 'required',
             'auditoryID'  => 'required',
             'TutorID'     => 'required',
-        ];
+        ];*/
 
         // Если у товара ещё нет активных характеристик — требуем массивы names и id_characteristic
         if (! $hasActive) {
