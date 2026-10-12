@@ -73,7 +73,7 @@ class StudentController extends Controller
     public function release(Request $request) {
         $insert = new Student;
         $insert->StudentID = $request->StudentID;
-        $insert->serialNumber = 'Lenovo  IdeaPad 1 145IJL7; color: CLOUD_GREY';
+        $insert->serialNumber = 'ACER E10 ET BOOK ENB6A5';
         $insert->login = Auth::user()->Login;
         $insert->status = 1;
         $insert->save();
