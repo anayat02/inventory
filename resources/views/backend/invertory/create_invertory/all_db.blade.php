@@ -55,9 +55,11 @@
                                     <select name="auditoryID" id="auditoryID" class="form-control select2">
                                         <option value="">Все аудитории</option>
                                         @foreach($auditories ?? [] as $a)
-                                            <option value="{{ $a->auditoryID }}" {{ request('auditoryID') == $a->auditoryID ? 'selected' : '' }}>
-                                                {{ $a->auditoryName }}
-                                            </option>
+                                            @if(!request('buildingID') || (string)request('buildingID') === (string)$a->buildingID)
+                                                <option value="{{ $a->auditoryID }}" data-building-id="{{ $a->buildingID }}" {{ request('auditoryID') == $a->auditoryID ? 'selected' : '' }}>
+                                                    {{ $a->auditoryName }}
+                                                </option>
+                                            @endif
                                         @endforeach
                                     </select>
                                 </div>
@@ -302,5 +304,82 @@
             const form = document.getElementById('refuseForm');
             form.action = form.action.replace(/\/\d+$/, '/' + id_product);
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var allAuditories = @json($auditories ?? []);
+            var buildingSelect = document.getElementById('buildingID');
+            var auditorySelect = document.getElementById('auditoryID');
+
+            if (!buildingSelect || !auditorySelect) {
+                return;
+            }
+
+            // Инициализация Select2 для селектов с классом select2
+            if (window.jQuery && jQuery.fn.select2) {
+                jQuery('.select2').select2({
+                    width: '100%'
+                });
+            }
+
+            function updateAuditories(buildingId, selectedAuditoryId) {
+                var currentAuditory = (selectedAuditoryId !== undefined && selectedAuditoryId !== null && selectedAuditoryId !== '')
+                    ? String(selectedAuditoryId)
+                    : String(auditorySelect.value || '');
+
+                auditorySelect.innerHTML = '';
+
+                var defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Все аудитории';
+                auditorySelect.appendChild(defaultOption);
+
+                var hasCurrentVal = false;
+
+                allAuditories.forEach(function(item) {
+                    var itemBuildingId = item.buildingID !== undefined ? item.buildingID : item.buildingId;
+                    if (!buildingId || String(itemBuildingId) === String(buildingId)) {
+                        var opt = document.createElement('option');
+                        opt.value = item.auditoryID;
+                        opt.textContent = item.auditoryName;
+                        opt.setAttribute('data-building-id', itemBuildingId);
+
+                        if (currentAuditory && String(item.auditoryID) === currentAuditory) {
+                            opt.selected = true;
+                            hasCurrentVal = true;
+                        }
+                        auditorySelect.appendChild(opt);
+                    }
+                });
+
+                if (!hasCurrentVal) {
+                    auditorySelect.value = '';
+                }
+
+                // Обновляем Select2, если он подключен
+                if (window.jQuery && jQuery.fn.select2) {
+                    var $aud = jQuery(auditorySelect);
+                    if ($aud.hasClass('select2-hidden-accessible')) {
+                        $aud.select2('destroy');
+                    }
+                    $aud.select2({ width: '100%' });
+                }
+            }
+
+            // Слушаем изменение выбранного корпуса
+            if (window.jQuery) {
+                jQuery(buildingSelect).on('change', function() {
+                    updateAuditories(this.value);
+                });
+            } else {
+                buildingSelect.addEventListener('change', function() {
+                    updateAuditories(this.value);
+                });
+            }
+
+            // Если при загрузке страницы корпус уже выбран, фильтруем аудитории
+            if (buildingSelect.value) {
+                updateAuditories(buildingSelect.value, '{{ request('auditoryID') }}');
+            }
+        });
     </script>
 @endsection
