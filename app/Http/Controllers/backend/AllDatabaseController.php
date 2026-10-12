@@ -49,6 +49,30 @@ class AllDatabaseController extends Controller
         return $items;
     }
 
+    private function applyFilters($query, Request $request, $isAdmin)
+    {
+        if ($request->filled('buildingID')) {
+            $query->where('in_product_lists.buildingID', $request->buildingID);
+        }
+        if ($request->filled('auditoryID')) {
+            $query->where('in_product_lists.auditoryID', $request->auditoryID);
+        }
+        if ($request->filled('id_name')) {
+            $query->where('in_product_lists.id_name', $request->id_name);
+        }
+        if ($request->filled('type')) {
+            $query->where('in_product_lists.type', $request->type);
+        }
+        if ($request->filled('verification_status')) {
+            $query->where('in_product_lists.verification_status', $request->verification_status);
+        }
+        if ($isAdmin && $request->filled('tutorID')) {
+            $query->where('in_product_lists.TutorID', $request->tutorID);
+        }
+
+        return $query;
+    }
+
     public function all(Request $request)
     {
         $user = Auth::user();
@@ -75,24 +99,7 @@ class AllDatabaseController extends Controller
             $query->where('in_product_lists.TutorID', $user->TutorID);
         }
 
-        if ($request->filled('buildingID')) {
-            $query->where('in_product_lists.buildingID', $request->buildingID);
-        }
-        if ($request->filled('auditoryID')) {
-            $query->where('in_product_lists.auditoryID', $request->auditoryID);
-        }
-        if ($request->filled('id_name')) {
-            $query->where('in_product_lists.id_name', $request->id_name);
-        }
-        if ($request->filled('type')) {
-            $query->where('in_product_lists.type', $request->type);
-        }
-        if ($request->filled('verification_status')) {
-            $query->where('in_product_lists.verification_status', $request->verification_status);
-        }
-        if ($isAdmin && $request->filled('tutorID')) {
-            $query->where('in_product_lists.TutorID', $request->tutorID);
-        }
+        $query = $this->applyFilters($query, $request, $isAdmin);
 
         $items = $query->orderBy('id_product', 'desc')->get();
         $items = $this->attachTutorNames($items);
@@ -137,6 +144,8 @@ class AllDatabaseController extends Controller
             $query->where('in_product_lists.TutorID', $user->TutorID);
         }
 
+        $query = $this->applyFilters($query, $request, $isAdmin);
+
         $items = $query->orderBy('id_product', 'desc')->get();
         $items = $this->attachTutorNames($items);
 
@@ -148,7 +157,7 @@ class AllDatabaseController extends Controller
         return view('backend.invertory.create_invertory.all_db', compact('items', 'buildings', 'auditories', 'productNames', 'tutors'));
     }
 
-    public function noSorted()
+    public function noSorted(Request $request)
     {
         $user = Auth::user();
         $isAdmin = $user && $user->hasAnyRole(['admin', 'super-admin']);
@@ -179,6 +188,8 @@ class AllDatabaseController extends Controller
             $query->where('in_product_lists.TutorID', $user->TutorID);
         }
 
+        $query = $this->applyFilters($query, $request, $isAdmin);
+
         $items = $query->orderBy('id_product', 'desc')->get();
         $items = $this->attachTutorNames($items);
 
@@ -190,7 +201,7 @@ class AllDatabaseController extends Controller
         return view('backend.invertory.create_invertory.all_db', compact('items', 'buildings', 'auditories', 'productNames', 'tutors'));
     }
 
-    public function noNumber()
+    public function noNumber(Request $request)
     {
         $user = Auth::user();
         $isAdmin = $user && $user->hasAnyRole(['admin', 'super-admin']);
@@ -216,6 +227,8 @@ class AllDatabaseController extends Controller
         if (!$isAdmin) {
             $query->where('in_product_lists.TutorID', $user->TutorID);
         }
+
+        $query = $this->applyFilters($query, $request, $isAdmin);
 
         $items = $query->orderBy('id_product', 'desc')->get();
         $items = $this->attachTutorNames($items);
