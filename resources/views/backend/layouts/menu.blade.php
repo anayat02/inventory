@@ -248,6 +248,15 @@
                         </p>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="{{ route('copyCharacteristics.form') }}" class="nav-link">
+                        <i class="bi bi-copy"></i>
+                        <p>
+                            копирование характеристик
+                            <!-- <span class="right badge badge-danger">New</span> -->
+                        </p>
+                    </a>
+                </li>
             </ul>
         </li>
         <li class="nav-item">

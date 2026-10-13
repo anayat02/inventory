@@ -607,4 +607,127 @@ class MoveAndChangeController extends Controller
     }
 
 
+    // В MoveAndChangeController
+
+    public function copyCharacteristicsForm()
+    {
+        $auditories = DB::table('auditories')->orderByRaw('CAST(auditoryName AS UNSIGNED) asc')->get();
+
+        return view('backend.invertory.redactor.char_sync', compact('auditories'));
+    }
+
+// AJAX: список товаров в выбранной аудитории (для шага 1 — выбор донора)
+    public function productsInAuditory($auditoryID)
+    {
+        $products = DB::table('in_product_lists')
+            ->leftJoin('in_product_name', 'in_product_lists.id_name', '=', 'in_product_name.id_name')
+            ->where('in_product_lists.auditoryID', $auditoryID)
+            ->where('in_product_lists.actual_inventory', 1)
+            ->select(
+                'in_product_lists.id_product',
+                'in_product_lists.inv_number',
+                'in_product_name.name_product'
+            )
+            ->orderBy('in_product_name.name_product')
+            ->get();
+
+        return response()->json($products);
+    }
+
+// AJAX: характеристики конкретного товара (показать перед копированием)
+    public function productCharacteristics($id_product)
+    {
+        $characteristics = DB::table('in_characteristics_for_products')
+            ->leftJoin('in_list_characteristics', 'in_list_characteristics.id_characteristic', '=', 'in_characteristics_for_products.id_characteristic')
+            ->where('in_characteristics_for_products.id_product', $id_product)
+            ->where('in_characteristics_for_products.current_status', 0)
+            ->select(
+                'in_list_characteristics.name_characteristic',
+                'in_characteristics_for_products.characteristic_value'
+            )
+            ->get();
+
+        return response()->json($characteristics);
+    }
+
+// AJAX: уникальные типы товаров (product_name) в выбранной аудитории (для шага 2)
+    public function productNamesInAuditory($auditoryID)
+    {
+        $names = DB::table('in_product_lists')
+            ->leftJoin('in_product_name', 'in_product_lists.id_name', '=', 'in_product_name.id_name')
+            ->where('in_product_lists.auditoryID', $auditoryID)
+            ->where('in_product_lists.actual_inventory', 1)
+            ->select('in_product_lists.id_name', 'in_product_name.name_product')
+            ->distinct()
+            ->orderBy('in_product_name.name_product')
+            ->get();
+
+        return response()->json($names);
+    }
+
+// Само копирование
+    public function copyCharacteristicsSync(Request $request)
+    {
+        $validated = $request->validate([
+            'source_id_product' => 'required|integer|exists:in_product_lists,id_product',
+            'target_auditoryID'  => 'required|integer',
+            'target_id_name'     => 'required|integer',
+        ]);
+
+        dd($validated, DB::table('in_characteristics_for_products')
+            ->where('id_product', $validated['source_id_product'])
+            ->get());
+
+        DB::beginTransaction();
+        try {
+            $sourceCharacteristics = DB::table('in_characteristics_for_products')
+                ->where('id_product', $validated['source_id_product'])
+                ->where('current_status', 0)
+                ->get(['id_characteristic', 'characteristic_value']);
+
+            if ($sourceCharacteristics->isEmpty()) {
+                return back()->with('error', 'У выбранного товара нет активных характеристик.');
+            }
+
+            $targetIds = DB::table('in_product_lists')
+                ->where('auditoryID', $validated['target_auditoryID'])
+                ->where('id_name', $validated['target_id_name'])
+                ->where('actual_inventory', 1)
+                ->where('id_product', '!=', $validated['source_id_product'])
+                ->pluck('id_product');
+
+            if ($targetIds->isEmpty()) {
+                return back()->with('error', 'В выбранной аудитории нет товаров этого типа.');
+            }
+
+            $now = now();
+
+            foreach ($targetIds as $targetId) {
+                DB::table('in_characteristics_for_products')
+                    ->where('id_product', $targetId)
+                    ->where('current_status', 0)
+                    ->update(['current_status' => 1, 'updated_at' => $now]);
+
+                $rows = $sourceCharacteristics->map(function ($char) use ($targetId, $now) {
+                    return [
+                        'id_product'           => $targetId,
+                        'id_characteristic'    => $char->id_characteristic,
+                        'characteristic_value' => $char->characteristic_value,
+                        'current_status'       => 0,
+                        'created_at'           => $now,
+                        'updated_at'           => $now,
+                    ];
+                })->toArray();
+
+                DB::table('in_characteristics_for_products')->insert($rows);
+            }
+
+            DB::commit();
+            return back()->with('success', 'Характеристики присвоены ' . $targetIds->count() . ' товарам.');
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return back()->with('error', 'Ошибка: ' . $e->getMessage());
+        }
+    }
 }

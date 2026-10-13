@@ -55,6 +55,12 @@ Route::middleware(['role:admin'])->group(function () {
 
     Route::get('/classroom-checks/history', [App\Http\Controllers\backend\ClassroomCheckController::class, 'adminHistory'])->name('classroom_checks.admin_history');
 
+    Route::get('/copy-characteristics', [MoveAndChangeController::class, 'copyCharacteristicsForm'])->name('copyCharacteristics.form');
+    Route::get('/copy-characteristics/products/{auditoryID}', [MoveAndChangeController::class, 'productsInAuditory'])->name('copyCharacteristics.products');
+    Route::get('/copy-characteristics/characteristics/{id_product}', [MoveAndChangeController::class, 'productCharacteristics'])->name('copyCharacteristics.characteristics');
+    Route::get('/copy-characteristics/names/{auditoryID}', [MoveAndChangeController::class, 'productNamesInAuditory'])->name('copyCharacteristics.names');
+    Route::post('/copy-characteristics', [MoveAndChangeController::class, 'copyCharacteristicsSync'])->name('copyCharacteristics.sync');
+
 });
 Route::middleware(['auth'])->group(function () {
     Route::get('/classroom-checks/form/{auditoryID}/{checkType}', [App\Http\Controllers\backend\ClassroomCheckController::class, 'showCheckForm'])->name('classroom_checks.form');
