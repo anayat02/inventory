@@ -19,39 +19,45 @@ class WriteOffController extends Controller
 
     public function write_off_save(Request $request)
     {
-        $invNumbers = $request->input('inv_numbers');
-        $document_number = $request->input('document_number');
-        $theme = $request->input('theme');
-        $date = $request->input('date');
+        $request->validate([
+            'inv_numbers'     => 'required|array|min:1',
+            'inv_numbers.*'   => 'required|string',
+            'document_number' => 'required|string|max:255',
+            'theme'           => 'required|string|max:255',
+            'date'            => 'required|date',
+            'file'            => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ]);
 
-        // Проверка на наличие загруженного файла
-        if ($request->hasFile('file')) {
-            // Генерация уникального имени для файла
-            $uniqueFileName = Str::uuid() . '.' . $request->file('file')->getClientOriginalExtension();
+        $file = $request->file('file');
+        $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $file->storeAs('public/act', $fileName);
 
-            // Сохранение файла в папку public с уникальным именем
-            $filePath = $request->file('file')->storeAs('public/act', $uniqueFileName);
+        DB::transaction(function () use ($request, $fileName) {
+            $products = DB::table('in_product_lists')
+                ->whereIn('inv_number', $request->inv_numbers)
+                ->pluck('id_product', 'inv_number');
 
-            // Перебор каждого инвентарного номера и добавление записи
-            foreach ($invNumbers as $inv_number) {
-                $id_product = DB::table('in_product_lists')->where('inv_number', $inv_number)->value('id_product');
+            foreach ($request->inv_numbers as $inv_number) {
+                $id_product = $products[$inv_number] ?? null;
+
+                if (!$id_product) {
+                    continue; // или throw, если номер обязан существовать
+                }
 
                 Write_off::create([
-                    'inv_number' => $inv_number,
-                    'document_number' => $document_number,
-                    'theme' => $theme,
-                    'file' =>'act/' . $uniqueFileName,
-                    'date' => $date,
-                    'id_product' => $id_product,
+                    'inv_number'      => $inv_number,
+                    'document_number' => $request->document_number,
+                    'theme'           => $request->theme,
+                    'file'            => 'act/' . $fileName,
+                    'date'            => $request->date,
+                    'id_product'      => $id_product,
                 ]);
-
-                // Обновление write_off на 0 для текущего id_product
-                DB::table('in_product_lists')
-                    ->where('id_product', $id_product)
-                    ->update(['write_off' => 0]);
             }
 
-        }
+            DB::table('in_product_lists')
+                ->whereIn('id_product', $products->values())
+                ->update(['write_off' => 0]);
+        });
 
         return redirect()->back()->with('success', 'Записи успешно добавлены в список списанных инвентарей.');
     }

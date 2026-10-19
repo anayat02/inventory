@@ -252,7 +252,7 @@
                     <a href="{{ route('copyCharacteristics.form') }}" class="nav-link">
                         <i class="bi bi-copy"></i>
                         <p>
-                            копирование характеристик
+                            Копирование характеристик
                             <!-- <span class="right badge badge-danger">New</span> -->
                         </p>
                     </a>
@@ -281,6 +281,12 @@
                     </a>
                 </li>
             </ul>
+        </li>
+        <li class="nav-item">
+            <a href="{{ route('issuance') }}" class="nav-link">
+                <i class="bi bi-arrow-bar-up"></i>
+                <p>Выдача ноутбуков сотрудникам</p>
+            </a>
         </li>
         <li class="nav-item">
             <a href="https://ais.kazetu.kz" class="nav-link">
