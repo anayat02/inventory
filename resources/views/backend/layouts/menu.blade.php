@@ -282,12 +282,14 @@
                 </li>
             </ul>
         </li>
-        <li class="nav-item">
-            <a href="{{ route('issuance') }}" class="nav-link">
-                <i class="bi bi-arrow-bar-up"></i>
-                <p>Выдача ноутбуков сотрудникам</p>
-            </a>
-        </li>
+        @if (Auth::user()->hasAnyRole(['admin', 'super-admin']))
+            <li class="nav-item">
+                <a href="{{ route('issuance') }}" class="nav-link">
+                    <i class="bi bi-arrow-bar-up"></i>
+                    <p>Выдача ноутбуков сотрудникам</p>
+                </a>
+            </li>
+        @endif
         <li class="nav-item">
             <a href="https://ais.kazetu.kz" class="nav-link">
                 <i class="bi bi-box-arrow-left"></i>
