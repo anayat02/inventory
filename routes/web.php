@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\backend\{ResponsibleController, StudentController, ForQrCodeController, ToPdfController, WriteOffController, ImportController,CategoryController, UserController,SynchronizeController, DitInvertoryController,DahrInvertoryController,MoveAndChangeController, AllDatabaseController, PropertiesController};
+use App\Http\Controllers\backend\{TeacherController, ResponsibleController, StudentController, ForQrCodeController, ToPdfController, WriteOffController, ImportController,CategoryController, UserController,SynchronizeController, DitInvertoryController,DahrInvertoryController,MoveAndChangeController, AllDatabaseController, PropertiesController};
 use App\Http\Controllers\Auth\LoginController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -61,7 +61,11 @@ Route::middleware(['role:admin'])->group(function () {
     Route::get('/copy-characteristics/names/{auditoryID}', [MoveAndChangeController::class, 'productNamesInAuditory'])->name('copyCharacteristics.names');
     Route::post('/copy-characteristics', [MoveAndChangeController::class, 'copyCharacteristicsSync'])->name('copyCharacteristics.sync');
 
+    Route::get('/issuance', [TeacherController::class,'issuance'])->name('issuance');
+    Route::post('/issuance/send', [TeacherController::class,'laptop_for_teachers'])->name('laptop_for_teachers');
+
 });
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/classroom-checks/form/{auditoryID}/{checkType}', [App\Http\Controllers\backend\ClassroomCheckController::class, 'showCheckForm'])->name('classroom_checks.form');
     Route::post('/classroom-checks/store', [App\Http\Controllers\backend\ClassroomCheckController::class, 'storeCheck'])->name('classroom_checks.store');

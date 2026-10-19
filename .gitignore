@@ -12,7 +12,7 @@
 .env.backup
 .env.production
 .phpunit.result.cache
-/public/storage/logs/laravel.log
+/public/storage/*
 .idea/
 /bootstrap/cache/*.php
 /public/storage/*
