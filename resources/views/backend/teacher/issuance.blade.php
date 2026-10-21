@@ -111,7 +111,7 @@
                                     <td>{{ $row->model }}</td>
                                     <td>{{ $row->serial_number }}</td>
                                     <td>
-                                        @if($issuance->file_act)
+                                        @if($row->file_act)
                                             <button type="button"
                                                     class="btn btn-sm btn-outline-primary"
                                                     data-toggle="modal"
