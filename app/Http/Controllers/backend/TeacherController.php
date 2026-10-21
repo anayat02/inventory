@@ -16,10 +16,9 @@ class TeacherController extends Controller
                 'TutorID',
                 DB::raw("CONCAT(lastname, ' ', firstname) AS full_name")
             )
-            ->orderBy('id')
             ->get();
 
-        $laptop_list = Issuance::all();
+        $laptop_list = Issuance::orderBy('id', 'desc')->all();
 
         return view('backend.teacher.issuance', compact('tutors', 'laptop_list'));
     }
