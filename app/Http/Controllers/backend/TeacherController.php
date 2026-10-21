@@ -18,7 +18,7 @@ class TeacherController extends Controller
             )
             ->get();
 
-        $laptop_list = Issuance::orderBy('id', 'asc')->get();
+        $laptop_list = Issuance::latest('id')->get();
 
         return view('backend.teacher.issuance', compact('tutors', 'laptop_list'));
     }
