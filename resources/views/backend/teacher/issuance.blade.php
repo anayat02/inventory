@@ -69,7 +69,7 @@
                             <div class="form-group mb-0">
                                 <label for="fileInput">Скан-копия документа</label>
                                 <div class="file-upload" id="fileUpload">
-                                    <input type="file" id="fileInput" name="file" accept=".pdf,.doc,.docx" required>
+                                    <input type="file" id="fileInput" name="file" accept=".pdf,.doc,.docx">
                                     <span id="fileUploadText">Перетащите файл сюда или нажмите для выбора</span>
                                 </div>
                                 <button type="button" id="fileClear" class="btn btn-link btn-sm text-danger p-0 mt-1 d-none">Убрать файл</button>
@@ -111,7 +111,7 @@
                                     <td>{{ $row->model }}</td>
                                     <td>{{ $row->serial_number }}</td>
                                     <td>
-                                        @if($row->file_act)
+                                        @if($issuance->file_act)
                                             <button type="button"
                                                     class="btn btn-sm btn-outline-primary"
                                                     data-toggle="modal"
@@ -120,6 +120,8 @@
                                                     data-title="Акт приёма-передачи">
                                                 Открыть
                                             </button>
+                                        @else
+                                            АКТ отсутствует
                                         @endif
                                     </td>
                                 </tr>

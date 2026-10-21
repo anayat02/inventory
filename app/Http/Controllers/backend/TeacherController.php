@@ -29,12 +29,16 @@ class TeacherController extends Controller
             'tutor_name'    => 'required|string|max:255',
             'model'         => 'required|string|max:255',
             'serial_number' => 'required|string|max:255',
-            'file'          => 'required|file|mimes:pdf,doc,docx|max:10240',
+            'file'          => 'nullable|file|mimes:pdf,doc,docx|max:10240',
         ]);
 
-        $file = $request->file('file');
-        $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
-        $file->storeAs('public/act_pp', $fileName);
+        $fileName = null;
+
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $file->storeAs('public/act_pp', $fileName);
+        }
 
         Issuance::create([
             'full_name'     => trim(preg_replace('/\s+/u', ' ', $request->tutor_name)),
