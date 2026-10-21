@@ -16,7 +16,7 @@ class TeacherController extends Controller
                 'TutorID',
                 DB::raw("CONCAT(lastname, ' ', firstname) AS full_name")
             )
-            ->orderBy('desc')
+            ->orderBy('id')
             ->get();
 
         $laptop_list = Issuance::all();
