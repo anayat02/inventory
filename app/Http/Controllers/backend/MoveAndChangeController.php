@@ -670,46 +670,45 @@ class MoveAndChangeController extends Controller
     {
         $validated = $request->validate([
             'source_id_product' => 'required|integer|exists:in_product_lists,id_product',
-            'target_auditoryID'  => 'required|integer',
-            'target_id_name'     => 'required|integer',
+            'target_auditoryID' => 'required|integer',
+            'target_id_name'    => 'required|integer',
         ]);
 
-        dd($validated, DB::table('in_characteristics_for_products')
+        $sourceCharacteristics = DB::table('in_characteristics_for_products')
             ->where('id_product', $validated['source_id_product'])
-            ->get());
+            ->where('current_status', 0)
+            ->get(['id_characteristic', 'characteristic_value']);
+
+        if ($sourceCharacteristics->isEmpty()) {
+            return back()->with('error', 'У выбранного товара нет активных характеристик.');
+        }
+
+        $targetIds = DB::table('in_product_lists')
+            ->where('auditoryID', $validated['target_auditoryID'])
+            ->where('id_name', $validated['target_id_name'])
+            ->where('actual_inventory', 1)
+            ->where('id_product', '!=', $validated['source_id_product'])
+            ->pluck('id_product');
+
+        if ($targetIds->isEmpty()) {
+            return back()->with('error', 'В выбранной аудитории нет товаров этого типа.');
+        }
 
         DB::beginTransaction();
         try {
-            $sourceCharacteristics = DB::table('in_characteristics_for_products')
-                ->where('id_product', $validated['source_id_product'])
-                ->where('current_status', 0)
-                ->get(['id_characteristic', 'characteristic_value']);
-
-            if ($sourceCharacteristics->isEmpty()) {
-                return back()->with('error', 'У выбранного товара нет активных характеристик.');
-            }
-
-            $targetIds = DB::table('in_product_lists')
-                ->where('auditoryID', $validated['target_auditoryID'])
-                ->where('id_name', $validated['target_id_name'])
-                ->where('actual_inventory', 1)
-                ->where('id_product', '!=', $validated['source_id_product'])
-                ->pluck('id_product');
-
-            if ($targetIds->isEmpty()) {
-                return back()->with('error', 'В выбранной аудитории нет товаров этого типа.');
-            }
-
             $now = now();
 
-            foreach ($targetIds as $targetId) {
-                DB::table('in_characteristics_for_products')
-                    ->where('id_product', $targetId)
-                    ->where('current_status', 0)
-                    ->update(['current_status' => 1, 'updated_at' => $now]);
+            // Архивируем текущие характеристики всех целевых товаров одним запросом
+            DB::table('in_characteristics_for_products')
+                ->whereIn('id_product', $targetIds)
+                ->where('current_status', 0)
+                ->update(['current_status' => 1, 'updated_at' => $now]);
 
-                $rows = $sourceCharacteristics->map(function ($char) use ($targetId, $now) {
-                    return [
+            // Вставляем новые одним insert
+            $rows = [];
+            foreach ($targetIds as $targetId) {
+                foreach ($sourceCharacteristics as $char) {
+                    $rows[] = [
                         'id_product'           => $targetId,
                         'id_characteristic'    => $char->id_characteristic,
                         'characteristic_value' => $char->characteristic_value,
@@ -717,9 +716,11 @@ class MoveAndChangeController extends Controller
                         'created_at'           => $now,
                         'updated_at'           => $now,
                     ];
-                })->toArray();
+                }
+            }
 
-                DB::table('in_characteristics_for_products')->insert($rows);
+            foreach (array_chunk($rows, 500) as $chunk) {
+                DB::table('in_characteristics_for_products')->insert($chunk);
             }
 
             DB::commit();
