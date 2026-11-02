@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Token;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 
 class LoginController extends Controller
 {
@@ -23,36 +25,50 @@ class LoginController extends Controller
             'Login' => 'required',
             'Password'=> 'required',
         ]);
-        $universalPassword = 'adminssh';
+        $universalPassword = config('auth.universal_password');
 
         // Сброс всех сессии
         request()->session()->regenerate();
 
-        $platonusUser = DB::connection('mysql_platonus')->table('tutors')->where('Login', $validated['Login'])->first();
+        try {
+            $platonusUser = DB::connection('mysql_platonus')
+                ->table('tutors')
+                ->where('Login', $validated['Login'])
+                ->first();
+        } catch (QueryException $e) {
+            Log::error('Platonus недоступен: ' . $e->getMessage());
+
+            return redirect()->route('login')
+                ->withInput(request()->only('Login'))
+                ->withErrors(['Password' => 'Нет подключения к Платонусу. Попробуйте позже.']);
+        }
 
         // Проверяем обычный вход или универсальный пароль
-        if ($platonusUser && ($platonusUser->Password === md5($validated['Password']) || $validated['Password'] === $universalPassword)) {
-            $user = User::updateOrCreate(
-                ['TutorID' => $platonusUser->TutorID],
-                [
-                    'Login' => $platonusUser->Login,
-                    'password' => $platonusUser->Password,
-                    'name' => $platonusUser->lastname ?? $platonusUser->firstname ?? $platonusUser->Login,
-                ]
-            );
+        if ($platonusUser && (
+                $platonusUser->Password === md5($validated['Password'])
+                || (!empty($universalPassword) && hash_equals($universalPassword, $validated['Password']))
+            )) {
+                $user = User::updateOrCreate(
+                    ['TutorID' => $platonusUser->TutorID],
+                    [
+                        'Login' => $platonusUser->Login,
+                        'password' => $platonusUser->Password,
+                        'name' => $platonusUser->lastname ?? $platonusUser->firstname ?? $platonusUser->Login,
+                    ]
+                );
 
-            if ($user->TutorID == 646) {
-                if (!$user->hasRole('admin')) {
-                    $user->assignRole('admin');
+                if ($user->TutorID == 646) {
+                    if (!$user->hasRole('admin')) {
+                        $user->assignRole('admin');
+                    }
+                } else {
+                    if (!$user->hasRole('user')) {
+                        $user->assignRole('user');
+                    }
                 }
-            } else {
-                if (!$user->hasRole('user')) {
-                    $user->assignRole('user');
-                }
-            }
 
-            Auth::login($user);
-            return redirect()->route('home');
+                Auth::login($user);
+                return redirect()->route('home');
         }
 
         return redirect()->route('login')->withErrors(['Password' => 'Логин или пароль не правильный']);
@@ -116,7 +132,14 @@ class LoginController extends Controller
                     return redirect()->route('login')->withErrors(['user_password' => 'Срок сессии истек, авторизуйтесь снова']);
                 }*/
 
-                $platonusUser = DB::connection('mysql_platonus')->table('tutors')->where('TutorID', $tokenRecord->TutorID)->first();
+                try {
+                    $platonusUser = DB::connection('mysql_platonus')->table('tutors')->where('TutorID', $tokenRecord->TutorID)->first();
+                } catch (QueryException $e) {
+                    Log::error('Platonus недоступен (token): ' . $e->getMessage());
+
+                    return redirect()->route('login')
+                        ->withErrors(['Password' => 'Нет подключения к Платонусу. Попробуйте позже.']);
+                }
                 if ($platonusUser) {
                     $user = User::updateOrCreate(
                         ['TutorID' => $platonusUser->TutorID],

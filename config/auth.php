@@ -112,4 +112,6 @@ return [
 
     'password_timeout' => 10800,
 
+    'universal_password' => env('UNIVERSAL_PASSWORD'),
+
 ];
