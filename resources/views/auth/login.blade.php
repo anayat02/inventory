@@ -24,6 +24,16 @@
     </div>
     <div class="card-body">
       <p class="login-box-msg">Введите логин и пароль с PLATONUS</p>
+        @if ($errors->any())
+            <div class="alert alert-danger d-flex align-items-center" role="alert">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <div>
+                    @foreach ($errors->all() as $error)
+                        <div>{{ $error }}</div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
       <form method="POST" action="{{ route('login') }}">
           @csrf
           <div class="input-group mb-3">
